@@ -1,0 +1,19 @@
+{
+  "name": "shveik-agent-kit",
+  "version": "0.1.3",
+  "description": "Skills and remote MCP servers for the shveik.dev pay-per-call services (agdata, agproxy, agvps, agmail, agpay), paid in stablecoins with x402 or MPP.",
+  "author": {
+    "name": "shveik.dev",
+    "url": "https://shveik.dev"
+  },
+  "homepage": "https://shveik.dev",
+  "license": "MIT",
+  "keywords": [
+    "x402",
+    "mpp",
+    "ai-agents",
+    "web-scraping",
+    "mcp",
+    "pay-per-call"
+  ]
+}

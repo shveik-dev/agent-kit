@@ -1,0 +1,16 @@
+{
+  "name": "shveik",
+  "owner": {
+    "name": "shveik.dev",
+    "url": "https://shveik.dev"
+  },
+  "description": "Skills and remote MCP servers for the shveik.dev pay-per-call services for AI agents (agdata, agproxy, agvps, agmail, agpay).",
+  "plugins": [
+    {
+      "name": "shveik-agent-kit",
+      "source": "./",
+      "description": "Skills and MCP servers for the shveik.dev services.",
+      "homepage": "https://shveik.dev"
+    }
+  ]
+}

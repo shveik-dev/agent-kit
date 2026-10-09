@@ -1,0 +1,29 @@
+{
+  "name": "@shveik-dev/ag",
+  "version": "0.1.3",
+  "description": "One small CLI for the shveik.dev agent products: agdata, agproxy, agvps, agmail, agpay",
+  "type": "module",
+  "bin": {
+    "ag": "bin/ag.js"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://shveik.dev",
+  "keywords": [
+    "ai-agents",
+    "x402",
+    "mpp",
+    "agdata",
+    "agproxy",
+    "agvps",
+    "agmail",
+    "agpay",
+    "cli"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "agdata": {
+      "type": "http",
+      "url": "https://agdata.shveik.dev/mcp"
+    },
+    "agproxy": {
+      "type": "http",
+      "url": "https://agproxy.shveik.dev/mcp"
+    },
+    "agvps": {
+      "type": "http",
+      "url": "https://agvps.shveik.dev/mcp"
+    },
+    "agmail": {
+      "type": "http",
+      "url": "https://agmail.shveik.dev/mcp"
+    },
+    "agpay": {
+      "type": "http",
+      "url": "https://agpay.shveik.dev/mcp"
+    }
+  }
+}
