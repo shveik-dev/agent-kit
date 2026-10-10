@@ -36,13 +36,18 @@ Free: `GET /openapi.json`, `/agents.md`, `/llms.txt`, `/pricing.md`, `/docs`, `/
 | `POST` | `/x402/screenshot` | Website screenshot or PDF of any URL |
 | `POST` | `/x402/linkedin-jobs` | LinkedIn job listings for a search |
 | `POST` | `/x402/indeed-jobs` | Indeed job listings for a search |
+| `POST` | `/x402/shopify-products` | Public products of a Shopify store |
 | `POST` | `/x402/google-news` | Google News articles for a search |
 | `POST` | `/x402/amazon-reviews` | Amazon customer reviews of a product |
+| `POST` | `/x402/google-play-reviews` | Google Play reviews of an Android app |
+| `POST` | `/x402/linkedin-company` | LinkedIn company enrichment |
 | `POST` | `/x402/web-search` | Web search with page content |
 | `POST` | `/x402/x-replies` | Replies to a post on X |
 | `POST` | `/x402/youtube-comments` | Comments under a YouTube video |
 | `POST` | `/x402/tiktok-comments` | Comments under a TikTok video |
 | `POST` | `/x402/instagram-comments` | Comments under an Instagram post |
+| `POST` | `/x402/ebay-sold` | eBay sold prices for resale comps |
+| `POST` | `/x402/meta-ads` | Public ads from the Meta ad library |
 | `POST` | `/x402/search-plus` | Web or news search with excerpts |
 
 The quote for each endpoint is live, so read it instead of assuming a price: `curl -s -X POST -H 'content-type: application/json' -d '{}' https://agdata.shveik.dev<path>`

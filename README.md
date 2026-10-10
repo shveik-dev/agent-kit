@@ -16,7 +16,7 @@ This repository holds the public parts you can use directly:
 | [`skills/`](skills) | One agent skill per service (`SKILL.md`), generated from each service's live `/v1` index |
 | [`.claude-plugin/`](.claude-plugin) | A Claude Code plugin that bundles the skills and the five remote MCP servers |
 | [`openapi/`](openapi) | The OpenAPI document of every service (copies of each `/openapi.json`) |
-| [`cli/`](cli), [`py/`](py), [`rb/`](rb) | The small zero-dependency CLI: `npx @shveik-dev/ag`, `pip install ag-cli`, `gem install ag-cli` |
+| [`cli/`](cli), [`py/`](py), [`rb/`](rb) | The small zero-dependency CLI: `npx @shveik-dev/ag`, `pip install agdata`, `gem install ag-cli` |
 | [`examples/`](examples) | A tested x402 client example that pays on Solana with the official `@x402/svm` client |
 | [`AGENTS.md`](AGENTS.md) | Rules and tips for agents that call these services |
 

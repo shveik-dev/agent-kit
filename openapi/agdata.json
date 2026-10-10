@@ -87,7 +87,7 @@
     "contact": {
       "email": "agdata@shveik.dev"
     },
-    "description": "Unblocking and web data API for AI agents: any URL as clean Markdown, HTML or text, screenshots and PDFs of pages, YouTube transcripts, Google Maps reviews, job listings, Google News, Amazon reviews, web search with page content and fast search with excerpts, plus social, maps and search data as JSON. Endpoints: unblock, instagram, google-maps, tiktok, linkedin, youtube, twitter, reddit, amazon, google-search, google-maps-reviews, youtube-transcript, screenshot, linkedin-jobs, indeed-jobs, google-news, amazon-reviews, web-search, x-replies, youtube-comments, tiktok-comments, instagram-comments, search-plus. Returns structured JSON. Payment is in stablecoins: x402 on Base and Polygon (plus Solana on some routes) or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A failed scrape is never charged; otherwise a call pays a small fixed fee plus the results it returns, and results paid for but not delivered are refunded. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agdata.shveik.dev/deprecation-policy.",
+    "description": "Unblocking and web data API for AI agents: any URL as clean Markdown, HTML or text, screenshots and PDFs of pages, YouTube transcripts, Google Maps reviews, job listings, Google News, Amazon reviews, web search with page content and fast search with excerpts, plus social, maps and search data as JSON. Endpoints: unblock, instagram, google-maps, tiktok, linkedin, youtube, twitter, reddit, amazon, google-search, google-maps-reviews, youtube-transcript, screenshot, linkedin-jobs, indeed-jobs, shopify-products, google-news, amazon-reviews, google-play-reviews, linkedin-company, web-search, x-replies, youtube-comments, tiktok-comments, instagram-comments, ebay-sold, meta-ads, search-plus. Returns structured JSON. Payment is in stablecoins: x402 on Base and Polygon (plus Solana on some routes) or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A failed scrape is never charged; otherwise a call pays a small fixed fee plus the results it returns, and results paid for but not delivered are refunded. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agdata.shveik.dev/deprecation-policy.",
     "title": "agdata",
     "version": "1.1.0",
     "x-api-lifecycle": {
@@ -95,7 +95,7 @@
       "policy": "https://agdata.shveik.dev/deprecation-policy",
       "versioning": "URL prefix /v1"
     },
-    "x-guidance": "POST a small JSON body (see each operation's requestBody) with no payment to get a 402 carrying a PAYMENT-REQUIRED header (x402) and a WWW-Authenticate: Payment challenge (MPP). Sign either and retry the same request with a PAYMENT-SIGNATURE header (x402) or Authorization: Payment (MPP) to receive the JSON dataset. The 402 quotes the price for your requested limit: a fixed per-call fee plus a per-result price for each result; endpoints without a limit field return one result. If fewer results come back than you asked for, the per-result price of the missing ones is refunded on-chain to the paying address (refunds too small to be worth a transfer are not sent); a scrape with no results keeps only the fixed fee and refunds every result; a failed scrape is not settled. Response headers X-Agdata-Results-Requested, X-Agdata-Results-Delivered and X-Agdata-Refund (USDC base units) report it. On unblock, a page that could not be fetched (blocked, an error status or empty) is not settled and nothing is kept for it (502, error not_fetched). On instagram, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-maps, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On tiktok, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On linkedin, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On youtube, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On twitter, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On reddit, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On amazon, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-search, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-maps-reviews, a place with no reviews is not settled and nothing is kept for it (502, error not_fetched). On youtube-transcript, a video without subtitles in the requested language is not settled and nothing is kept for it (502, error not_fetched). On screenshot, a page that could not be captured, renders blank or gives an image over 5 MiB is not settled and nothing is kept for it (502, error not_fetched). On linkedin-jobs, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On indeed-jobs, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-news, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On amazon-reviews, a product with no reviews (or an unknown one) is not settled and nothing is kept for it (502, error not_fetched). On web-search, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On x-replies, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On youtube-comments, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On tiktok-comments, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On instagram-comments, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On search-plus, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). The unblock endpoint fetches one page per call and has no limit field. A fetch can take up to about 90 s: keep the connection open; retrying with the same payment returns the stored result. youtube-transcript, screenshot and search-plus can take up to about 60 s: keep the connection open; retrying with the same payment returns the stored result. unblock, twitter, reddit, youtube-transcript, screenshot, linkedin-jobs, amazon-reviews, web-search, x-replies, youtube-comments, tiktok-comments and instagram-comments are not offered on Solana. Results are returned as one JSON array; limit is a maximum-result count (clamped to endpoint bounds). Paid results have no cursor or continuation token; the only paginated resource is the free GET /endpoints list (limit, cursor, next_cursor). Calls are synchronous; scrape timeout is bounded by configured upstream and settlement windows. An occasional 202 means settlement may have reached the chain, not an asynchronous job; retry the same payment to resolve/retrieve, and there is no status URL."
+    "x-guidance": "POST a small JSON body (see each operation's requestBody) with no payment to get a 402 carrying a PAYMENT-REQUIRED header (x402) and a WWW-Authenticate: Payment challenge (MPP). Sign either and retry the same request with a PAYMENT-SIGNATURE header (x402) or Authorization: Payment (MPP) to receive the JSON dataset. The 402 quotes the price for your requested limit: a fixed per-call fee plus a per-result price for each result; endpoints without a limit field return one result. If fewer results come back than you asked for, the per-result price of the missing ones is refunded on-chain to the paying address (refunds too small to be worth a transfer are not sent); a scrape with no results keeps only the fixed fee and refunds every result; a failed scrape is not settled. Response headers X-Agdata-Results-Requested, X-Agdata-Results-Delivered and X-Agdata-Refund (USDC base units) report it. On unblock, a page that could not be fetched (blocked, an error status or empty) is not settled and nothing is kept for it (502, error not_fetched). On instagram, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-maps, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On tiktok, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On linkedin, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On youtube, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On twitter, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On reddit, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On amazon, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-search, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On google-maps-reviews, a place with no reviews is not settled and nothing is kept for it (502, error not_fetched). On youtube-transcript, a video without subtitles in the requested language is not settled and nothing is kept for it (502, error not_fetched). On screenshot, a page that could not be captured, renders blank or gives an image over 5 MiB is not settled and nothing is kept for it (502, error not_fetched). On linkedin-jobs, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On indeed-jobs, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On shopify-products, a site that is not a Shopify store, or has no public products is not settled and nothing is kept for it (502, error not_fetched). On google-news, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On amazon-reviews, a product with no reviews (or an unknown one) is not settled and nothing is kept for it (502, error not_fetched). On google-play-reviews, an app with no reviews (or an unknown one) is not settled and nothing is kept for it (502, error not_fetched). On linkedin-company, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On web-search, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On x-replies, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On youtube-comments, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On tiktok-comments, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On instagram-comments, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On ebay-sold, a search that returned no sold listings is not settled and nothing is kept for it (502, error not_fetched). On meta-ads, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On search-plus, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). The unblock endpoint fetches one page per call and has no limit field. A fetch can take up to about 90 s: keep the connection open; retrying with the same payment returns the stored result. youtube-transcript, screenshot and search-plus can take up to about 60 s: keep the connection open; retrying with the same payment returns the stored result. unblock, twitter, reddit, youtube-transcript, screenshot, linkedin-jobs, shopify-products, amazon-reviews, web-search, x-replies, youtube-comments, tiktok-comments, instagram-comments, ebay-sold and meta-ads are not offered on Solana. Results are returned as one JSON array; limit is a maximum-result count (clamped to endpoint bounds). Paid results have no cursor or continuation token; the only paginated resource is the free GET /endpoints list (limit, cursor, next_cursor). Calls are synchronous; scrape timeout is bounded by configured upstream and settlement windows. An occasional 202 means settlement may have reached the chain, not an asynchronous job; retry the same payment to resolve/retrieve, and there is no status URL."
   },
   "openapi": "3.1.0",
   "paths": {
@@ -638,6 +638,251 @@
         },
         "x-quote-probe": {
           "description": "GET /mpp/amazon-reviews with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/ebay-sold": {
+      "post": {
+        "description": "eBay sold listings API for AI agents: send a keyword and get confirmed sold items as JSON, for resale price comps: title, sold price and currency, shipping, total price, sale date, condition, listing type, bids and the seller's feedback percentage. Eight eBay marketplaces, the last 1 to 90 days, filter by new or used. Seller names and thumbnails are not returned. A search that returns nothing is not charged. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /mpp/ebay-sold with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppEbaySold",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "condition": {
+                    "default": "any",
+                    "description": "only new or only used items (default any)",
+                    "enum": [
+                      "any",
+                      "new",
+                      "used"
+                    ],
+                    "type": "string"
+                  },
+                  "days": {
+                    "default": 30,
+                    "description": "sold within the last this many days (1 to 90, default 30)",
+                    "maximum": 90,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "keyword": {
+                    "description": "what was sold, as typed into eBay's search, e.g. \"mechanical keyboard\" (2 to 100 characters)",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "number of sold listings wanted, 1 to 100 (default 20). A larger value is lowered to 100 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "site": {
+                    "default": "ebay.com",
+                    "description": "the eBay marketplace searched",
+                    "enum": [
+                      "ebay.com",
+                      "ebay.co.uk",
+                      "ebay.de",
+                      "ebay.fr",
+                      "ebay.it",
+                      "ebay.es",
+                      "ebay.ca",
+                      "ebay.com.au"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "keyword"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a search that returned no sold listings. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "eBay sold prices for resale comps",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "1.61605",
+            "min": "0.03205",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/ebay-sold with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -1383,6 +1628,234 @@
         },
         "x-quote-probe": {
           "description": "GET /mpp/google-news with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/google-play-reviews": {
+      "post": {
+        "description": "Google Play app reviews API for AI agents: send an Android package name or a Google Play app URL and get up to 200 reviews as JSON: rating, text, date, app version, language and helpful votes. Sort by newest, relevance or rating and filter by stars. Reviewer names and photos are not returned. An app with no reviews is not charged. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/google-play-reviews with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppGooglePlayReviews",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "app": {
+                    "description": "an Android package name (e.g. com.spotify.music) or a Google Play app URL (https://play.google.com/store/apps/details?id=com.spotify.music)",
+                    "maxLength": 2048,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "number of reviews wanted, 1 to 200 (default 20). A larger value is lowered to 200 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 200,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "rating": {
+                    "description": "keep only reviews with this many stars (1 to 5); omit for all",
+                    "maximum": 5,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "sort": {
+                    "default": "newest",
+                    "description": "order of the reviews",
+                    "enum": [
+                      "newest",
+                      "relevant",
+                      "rating"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "app"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: an app with no reviews (or an unknown one). Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Google Play reviews of an Android app",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "0.13215",
+            "min": "0.01275",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/google-play-reviews with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -2534,6 +3007,216 @@
         }
       }
     },
+    "/mpp/linkedin-company": {
+      "post": {
+        "description": "LinkedIn company enrichment API for AI agents: send up to 10 LinkedIn company page URLs and get one JSON record per company: name, website, employee and follower counts, founding year, tagline, description, industries, specialities, headquarters and locations, company type. Pay per company in stablecoins; a company that is not found is not charged. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/linkedin-company with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppLinkedinCompany",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "companies": {
+                    "description": "LinkedIn company page URLs, 1 to 10, e.g. https://www.linkedin.com/company/stripe/ (https only, no query string); the call is priced per company",
+                    "items": {
+                      "maxLength": 2048,
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "companies"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "LinkedIn company enrichment",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "0.17605",
+            "min": "0.03205",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/linkedin-company with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
     "/mpp/linkedin-jobs": {
       "post": {
         "description": "LinkedIn jobs search API for AI agents: send a job title or keywords and an optional location and get up to 50 public job listings as JSON: title, company, location, posting date, employment type, seniority, salary when listed, the listing's URL and its description. Filter by how recently a job was posted. Recruiter names are not returned. Jobs you paid for but did not get are refunded. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /mpp/linkedin-jobs with no body answers the 402 quote for one result without starting a scrape.",
@@ -2756,6 +3439,244 @@
         },
         "x-quote-probe": {
           "description": "GET /mpp/linkedin-jobs with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/meta-ads": {
+      "post": {
+        "description": "Meta ad library API for AI agents, for competitor research: send a keyword or an advertiser (name or page id) and get its public ads as JSON: advertiser, start and end date, whether it is still running, platforms, text, title, call to action, link, format and image URLs. Filter by country and by active or all ads; up to 100 per call, each ad once. Pay per call in stablecoins; an empty search is not charged and ads you paid for but did not get are refunded. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /mpp/meta-ads with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppMetaAds",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "oneOf": [
+                  {
+                    "required": [
+                      "keyword"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "page"
+                    ]
+                  }
+                ],
+                "properties": {
+                  "active": {
+                    "default": true,
+                    "description": "true: only ads running now; false: active and inactive ads (default true)",
+                    "type": "boolean"
+                  },
+                  "country": {
+                    "default": "US",
+                    "description": "two-letter country code the ads are shown in, or ALL (default US)",
+                    "type": "string"
+                  },
+                  "keyword": {
+                    "description": "search the ads by this word or phrase (give this or page, not both)",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "number of ads wanted, 1 to 100 (default 20). A larger value is lowered to 100 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "page": {
+                    "description": "the advertiser: a page name or its numeric page id (give this or keyword, not both)",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Public ads from the Meta ad library",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "0.09715",
+            "min": "0.03775",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/meta-ads with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -3524,6 +4445,218 @@
         },
         "x-quote-probe": {
           "description": "GET /mpp/search-plus with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/shopify-products": {
+      "post": {
+        "description": "Shopify store products API for AI agents: send a store's domain and get up to 250 of its public products as JSON: title, vendor, product type, price range, compare-at price, sale and availability flags, tags, image, description and variants with SKU and price. A site that is not a Shopify store, or has no public products, is not charged; products you paid for but did not get are refunded. Pay per call in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /mpp/shopify-products with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppShopifyProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "limit": {
+                    "default": 20,
+                    "description": "number of products wanted, 1 to 250 (default 20). A larger value is lowered to 250 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 250,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "store": {
+                    "description": "the store's domain, e.g. \"example.com\" (an https URL of the bare domain is accepted too; no port, path or IP address)",
+                    "maxLength": 2048,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "store"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a site that is not a Shopify store, or has no public products. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Public products of a Shopify store",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "1.014",
+            "min": "0.018",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/shopify-products with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -5984,6 +7117,247 @@
         }
       }
     },
+    "/x402/ebay-sold": {
+      "post": {
+        "description": "eBay sold listings API for AI agents: send a keyword and get confirmed sold items as JSON, for resale price comps: title, sold price and currency, shipping, total price, sale date, condition, listing type, bids and the seller's feedback percentage. Eight eBay marketplaces, the last 1 to 90 days, filter by new or used. Seller names and thumbnails are not returned. A search that returns nothing is not charged. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /x402/ebay-sold with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402EbaySold",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "condition": {
+                    "default": "any",
+                    "description": "only new or only used items (default any)",
+                    "enum": [
+                      "any",
+                      "new",
+                      "used"
+                    ],
+                    "type": "string"
+                  },
+                  "days": {
+                    "default": 30,
+                    "description": "sold within the last this many days (1 to 90, default 30)",
+                    "maximum": 90,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "keyword": {
+                    "description": "what was sold, as typed into eBay's search, e.g. \"mechanical keyboard\" (2 to 100 characters)",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "number of sold listings wanted, 1 to 100 (default 20). A larger value is lowered to 100 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "site": {
+                    "default": "ebay.com",
+                    "description": "the eBay marketplace searched",
+                    "enum": [
+                      "ebay.com",
+                      "ebay.co.uk",
+                      "ebay.de",
+                      "ebay.fr",
+                      "ebay.it",
+                      "ebay.es",
+                      "ebay.ca",
+                      "ebay.com.au"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "keyword"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a search that returned no sold listings. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "eBay sold prices for resale comps",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "1.61605",
+            "min": "0.03205",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/ebay-sold with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
     "/x402/google-maps": {
       "post": {
         "description": "Google Maps places for a search term, optionally narrowed to an area: {\"query\":\"coffee shops\",\"location\":\"Prague\",\"limit\":5}. Up to 20 places per call. Each place comes back with title, categoryName, address, phone, website, totalScore (rating), reviewsCount, location (lat, lng), openingHours, price, placeId and its Maps url. Common uses are local lead lists, store and competitor mapping, and checking a business's hours or phone number. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/google-maps with no body answers the 402 quote for one result without starting a scrape.",
@@ -6713,6 +8087,230 @@
         },
         "x-quote-probe": {
           "description": "GET /x402/google-news with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/google-play-reviews": {
+      "post": {
+        "description": "Google Play app reviews API for AI agents: send an Android package name or a Google Play app URL and get up to 200 reviews as JSON: rating, text, date, app version, language and helpful votes. Sort by newest, relevance or rating and filter by stars. Reviewer names and photos are not returned. An app with no reviews is not charged. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/google-play-reviews with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402GooglePlayReviews",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "app": {
+                    "description": "an Android package name (e.g. com.spotify.music) or a Google Play app URL (https://play.google.com/store/apps/details?id=com.spotify.music)",
+                    "maxLength": 2048,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "number of reviews wanted, 1 to 200 (default 20). A larger value is lowered to 200 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 200,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "rating": {
+                    "description": "keep only reviews with this many stars (1 to 5); omit for all",
+                    "maximum": 5,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "sort": {
+                    "default": "newest",
+                    "description": "order of the reviews",
+                    "enum": [
+                      "newest",
+                      "relevant",
+                      "rating"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "app"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: an app with no reviews (or an unknown one). Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Google Play reviews of an Android app",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "0.13215",
+            "min": "0.01275",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/google-play-reviews with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -7844,6 +9442,212 @@
         }
       }
     },
+    "/x402/linkedin-company": {
+      "post": {
+        "description": "LinkedIn company enrichment API for AI agents: send up to 10 LinkedIn company page URLs and get one JSON record per company: name, website, employee and follower counts, founding year, tagline, description, industries, specialities, headquarters and locations, company type. Pay per company in stablecoins; a company that is not found is not charged. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/linkedin-company with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402LinkedinCompany",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "companies": {
+                    "description": "LinkedIn company page URLs, 1 to 10, e.g. https://www.linkedin.com/company/stripe/ (https only, no query string); the call is priced per company",
+                    "items": {
+                      "maxLength": 2048,
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "companies"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "LinkedIn company enrichment",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "0.17605",
+            "min": "0.03205",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/linkedin-company with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
     "/x402/linkedin-jobs": {
       "post": {
         "description": "LinkedIn jobs search API for AI agents: send a job title or keywords and an optional location and get up to 50 public job listings as JSON: title, company, location, posting date, employment type, seniority, salary when listed, the listing's URL and its description. Filter by how recently a job was posted. Recruiter names are not returned. Jobs you paid for but did not get are refunded. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /x402/linkedin-jobs with no body answers the 402 quote for one result without starting a scrape.",
@@ -8062,6 +9866,240 @@
         },
         "x-quote-probe": {
           "description": "GET /x402/linkedin-jobs with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/meta-ads": {
+      "post": {
+        "description": "Meta ad library API for AI agents, for competitor research: send a keyword or an advertiser (name or page id) and get its public ads as JSON: advertiser, start and end date, whether it is still running, platforms, text, title, call to action, link, format and image URLs. Filter by country and by active or all ads; up to 100 per call, each ad once. Pay per call in stablecoins; an empty search is not charged and ads you paid for but did not get are refunded. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /x402/meta-ads with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402MetaAds",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "oneOf": [
+                  {
+                    "required": [
+                      "keyword"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "page"
+                    ]
+                  }
+                ],
+                "properties": {
+                  "active": {
+                    "default": true,
+                    "description": "true: only ads running now; false: active and inactive ads (default true)",
+                    "type": "boolean"
+                  },
+                  "country": {
+                    "default": "US",
+                    "description": "two-letter country code the ads are shown in, or ALL (default US)",
+                    "type": "string"
+                  },
+                  "keyword": {
+                    "description": "search the ads by this word or phrase (give this or page, not both)",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "description": "number of ads wanted, 1 to 100 (default 20). A larger value is lowered to 100 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "page": {
+                    "description": "the advertiser: a page name or its numeric page id (give this or keyword, not both)",
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Public ads from the Meta ad library",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "0.09715",
+            "min": "0.03775",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/meta-ads with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -8818,6 +10856,214 @@
         },
         "x-quote-probe": {
           "description": "GET /x402/search-plus with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/shopify-products": {
+      "post": {
+        "description": "Shopify store products API for AI agents: send a store's domain and get up to 250 of its public products as JSON: title, vendor, product type, price range, compare-at price, sale and availability flags, tags, image, description and variants with SKU and price. A site that is not a Shopify store, or has no public products, is not charged; products you paid for but did not get are refunded. Pay per call in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /x402/shopify-products with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402ShopifyProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "limit": {
+                    "default": 20,
+                    "description": "number of products wanted, 1 to 250 (default 20). A larger value is lowered to 250 and 0 or a negative one means the default; the quote follows the value used.",
+                    "maximum": 250,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "store": {
+                    "description": "the store's domain, e.g. \"example.com\" (an https URL of the bare domain is accepted too; no port, path or IP address)",
+                    "maxLength": 2048,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "store"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a site that is not a Shopify store, or has no public products. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Public products of a Shopify store",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "price": {
+            "currency": "USD",
+            "max": "1.014",
+            "min": "0.018",
+            "mode": "dynamic"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/shopify-products with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }

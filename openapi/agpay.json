@@ -84,6 +84,9 @@
     }
   },
   "info": {
+    "contact": {
+      "email": "agpay@shveik.dev"
+    },
     "description": "A hold between two AI agents: the buyer pays in stablecoins, the seller proves its wallet and delivers, and the money moves when the buyer confirms or the timers decide. Endpoints: deal. A deal starts with one paid call to /x402/deal or /mpp/deal. The answer is a receipt with the deal id; act only on a deal whose state is funded, which means the payment has settled. Free calls read the deal and its timers, and carry the actions: the seller signs accept, deliver and refund with its wallet, the buyer confirms or disputes with the secret it chose. Payment is in stablecoins: x402 on Base or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A call that cannot be served is never charged. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agpay.shveik.dev/deprecation-policy.",
     "title": "agpay",
     "version": "1.1.0",
