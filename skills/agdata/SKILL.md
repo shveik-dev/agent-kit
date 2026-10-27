@@ -1,6 +1,6 @@
 ---
 name: agdata
-description: Use when an agent needs fresh web data: any URL as Markdown, search, maps, reviews, jobs, news and social. Pay-per-call API at https://agdata.shveik.dev, paid in stablecoins with x402 or MPP; no account or API key.
+description: "Use when an agent needs fresh web data: any URL as Markdown, search, maps, reviews, jobs, news and social. Pay-per-call API at https://agdata.shveik.dev, paid in stablecoins with x402 or MPP; no account or API key."
 ---
 
 # agdata

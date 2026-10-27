@@ -1,6 +1,6 @@
 ---
 name: agpay
-description: Use when an agent needs a custodial hold between two agents: the buyer pays, the seller delivers, the money is released or refunded. Pay-per-call API at https://agpay.shveik.dev, paid in stablecoins with x402 or MPP; no account or API key.
+description: "Use when an agent needs a custodial hold between two agents: the buyer pays, the seller delivers, the money is released or refunded. Pay-per-call API at https://agpay.shveik.dev, paid in stablecoins with x402 or MPP; no account or API key."
 ---
 
 # agpay
