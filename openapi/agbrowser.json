@@ -96,7 +96,7 @@
     "title": "agbrowser",
     "version": "1.1.0",
     "x-api-lifecycle": {
-      "deprecation": "Deprecation and Sunset response headers with at least 90 days notice",
+      "deprecation": "API routes and behavior may change or be discontinued. Consult the current documentation before use. There is no fixed advance-notice period; existing purchases and rights that cannot lawfully be excluded are unaffected.",
       "policy": "https://agbrowser.shveik.dev/deprecation-policy",
       "versioning": "URL prefix /v1"
     },

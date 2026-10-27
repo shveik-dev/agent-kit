@@ -1,6 +1,6 @@
 {
   "name": "shveik-agent-kit",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Skills and remote MCP servers for the shveik.dev services (agdata, agproxy, agvps, agmail, agpay, agbrowser), paid in stablecoins with x402 or MPP.",
   "author": {
     "name": "shveik.dev",
