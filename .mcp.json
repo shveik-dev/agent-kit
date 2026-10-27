@@ -19,6 +19,10 @@
     "agpay": {
       "type": "http",
       "url": "https://agpay.shveik.dev/mcp"
+    },
+    "agbrowser": {
+      "type": "http",
+      "url": "https://agbrowser.shveik.dev/mcp"
     }
   }
 }

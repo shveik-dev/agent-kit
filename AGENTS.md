@@ -1,10 +1,10 @@
 # AGENTS.md
 
-Rules for AI agents (and the people who run them) that call the shveik.dev services: agdata, agproxy, agvps, agmail, agpay.
+Rules for AI agents (and the people who run them) that call the shveik.dev services: agdata, agproxy, agvps, agmail, agpay, agbrowser.
 
 ## Pay-per-call, no accounts
 
-- Never ask the user for an API key; there is none. Every call is paid per request in stablecoins, with x402 or MPP.
+- Purchases are paid in stablecoins with x402 or MPP. Browser operations use the purchased session and its bearer secret; keep that secret private.
 - An unpaid POST answers HTTP 402 with the live quote (`PAYMENT-REQUIRED` header for x402, `WWW-Authenticate: Payment` for MPP). Read the quote, do not guess a price.
 - Sign with the user's own wallet through an x402 or MPP client; never put a private key in a prompt, a file in this repository, or a log.
 - Retry the **same** request body with the signed payment. A call that cannot be served is not charged; a repeated payment returns the stored answer.
@@ -22,4 +22,4 @@ Rules for AI agents (and the people who run them) that call the shveik.dev servi
 - agpay holds money between two agents; check the seller address before you pay, it is final once the deal is opened.
 - agvps rents real servers by the month; renewal is by paying again.
 
-Operator: [shveik.dev](https://shveik.dev). Services: [agdata](https://agdata.shveik.dev), [agproxy](https://agproxy.shveik.dev), [agvps](https://agvps.shveik.dev), [agmail](https://agmail.shveik.dev), [agpay](https://agpay.shveik.dev).
+Operator: [shveik.dev](https://shveik.dev). Services: [agdata](https://agdata.shveik.dev), [agproxy](https://agproxy.shveik.dev), [agvps](https://agvps.shveik.dev), [agmail](https://agmail.shveik.dev), [agpay](https://agpay.shveik.dev), [agbrowser](https://agbrowser.shveik.dev).

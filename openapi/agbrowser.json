@@ -1,0 +1,3703 @@
+{
+  "components": {
+    "headers": {
+      "RateLimit-Limit": {
+        "description": "Per-client request limit for free GET documents.",
+        "schema": {
+          "const": 120,
+          "type": "integer"
+        }
+      },
+      "RateLimit-Policy": {
+        "description": "Configured free-document policy.",
+        "schema": {
+          "const": "120;w=60",
+          "type": "string"
+        }
+      },
+      "RateLimit-Remaining": {
+        "description": "Requests remaining in the current 60-second window.",
+        "schema": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "RateLimit-Reset": {
+        "description": "Seconds until the oldest request expires and another slot opens.",
+        "schema": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "Retry-After": {
+        "description": "Seconds to wait after a 429 response.",
+        "schema": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "description": "Optional retry key; reusing it with a different request body returns 422.",
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": false,
+        "schema": {
+          "maxLength": 128,
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "additionalProperties": true,
+        "properties": {
+          "error": {
+            "description": "a short stable code: invalid_request, invalid_payment, body_too_large, payment_in_progress, rate_limited, unavailable, upstream_failed, not_fetched, settlement_failed, expired, internal_error, not_found, method_not_allowed",
+            "type": "string"
+          },
+          "message": {
+            "description": "a human sentence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "browserSession": {
+        "description": "The secret returned once by create_session; bound to its session id.",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "mpp": {
+        "description": "MPP evm/authorization credential in Authorization header. First request without payment returns WWW-Authenticate challenge.",
+        "scheme": "Payment",
+        "type": "http"
+      },
+      "x402": {
+        "description": "x402 exact payment credential. First request without payment returns PAYMENT-REQUIRED quote.",
+        "in": "header",
+        "name": "PAYMENT-SIGNATURE",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "agbrowser@shveik.dev"
+    },
+    "description": "Buy hosted browser time in stablecoins over x402 or MPP. Save the session id and secret, then poll the session status until active. Browser operations require its bearer secret. Time starts after settlement and includes startup; no browser starts before settlement. See /agents.md for limits and refund rules.",
+    "title": "agbrowser",
+    "version": "1.1.0",
+    "x-api-lifecycle": {
+      "deprecation": "Deprecation and Sunset response headers with at least 90 days notice",
+      "policy": "https://agbrowser.shveik.dev/deprecation-policy",
+      "versioning": "URL prefix /v1"
+    },
+    "x-guidance": "An unpaid POST returns a quote. Repeat the same body with its signed payment. Save the returned secret once. Payment replay omits it. Poll GET /v1/sessions/{id} until active. Use the session bearer secret for operations."
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/endpoints": {
+      "get": {
+        "description": "Lists the paid endpoints with their paths and quote URLs, the same entries as the /v1 index. Pages hold limit entries (default 10, at most 50); when next_cursor is not null, pass it back as cursor for the next page. A malformed limit or cursor is a 400 error.",
+        "operationId": "listEndpoints",
+        "parameters": [
+          {
+            "description": "Entries per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor: the next_cursor of the previous page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "description": "Cursor of the next page; null on the last page.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "total": {
+                      "description": "Number of endpoints in the whole list.",
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "next_cursor",
+                    "total"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "One page of endpoints."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid limit or cursor (error invalid_request)."
+          }
+        },
+        "summary": "List the API endpoints, one page at a time",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/mpp/session-10m": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/session-10m with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSession10m",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "identity": {
+                    "enum": [
+                      "honest",
+                      "normal"
+                    ],
+                    "type": "string"
+                  },
+                  "locale": {
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "start_url": {
+                    "format": "uri",
+                    "maxLength": 4096,
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "dpr": {
+                        "maximum": 3,
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "h": {
+                        "maximum": 2160,
+                        "minimum": 200,
+                        "type": "integer"
+                      },
+                      "w": {
+                        "maximum": 3840,
+                        "minimum": 320,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-10m",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.025",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/session-10m with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/session-10m-extend": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/session-10m-extend with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSession10mExtend",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "pattern": "^bs_[0-9a-f]{12}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_id",
+                  "secret"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-10m-extend",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.025",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/session-10m-extend with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/session-30m": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/session-30m with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSession30m",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "identity": {
+                    "enum": [
+                      "honest",
+                      "normal"
+                    ],
+                    "type": "string"
+                  },
+                  "locale": {
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "start_url": {
+                    "format": "uri",
+                    "maxLength": 4096,
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "dpr": {
+                        "maximum": 3,
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "h": {
+                        "maximum": 2160,
+                        "minimum": 200,
+                        "type": "integer"
+                      },
+                      "w": {
+                        "maximum": 3840,
+                        "minimum": 320,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-30m",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.05",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/session-30m with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/session-30m-extend": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/session-30m-extend with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSession30mExtend",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "pattern": "^bs_[0-9a-f]{12}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_id",
+                  "secret"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-30m-extend",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.05",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/session-30m-extend with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/session-60m": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/session-60m with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSession60m",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "identity": {
+                    "enum": [
+                      "honest",
+                      "normal"
+                    ],
+                    "type": "string"
+                  },
+                  "locale": {
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "start_url": {
+                    "format": "uri",
+                    "maxLength": 4096,
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "dpr": {
+                        "maximum": 3,
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "h": {
+                        "maximum": 2160,
+                        "minimum": 200,
+                        "type": "integer"
+                      },
+                      "w": {
+                        "maximum": 3840,
+                        "minimum": 320,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-60m",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.09",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/session-60m with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/mpp/session-60m-extend": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/session-60m-extend with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSession60mExtend",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "pattern": "^bs_[0-9a-f]{12}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_id",
+                  "secret"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-60m-extend",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.09",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /mpp/session-60m-extend with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/sessions/{id}": {
+      "delete": {
+        "operationId": "closeBrowserSession",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Close a session; no unused-time refund for voluntary closure",
+        "tags": [
+          "Browser"
+        ]
+      },
+      "get": {
+        "operationId": "getBrowserSession",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Session state, identity, expiry and limits",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/actions": {
+      "post": {
+        "operationId": "browserActions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "action": "navigate",
+                "url": "https://example.com"
+              },
+              "schema": {
+                "additionalProperties": true,
+                "properties": {
+                  "action": {
+                    "enum": [
+                      "back",
+                      "captcha",
+                      "check",
+                      "click",
+                      "console",
+                      "cookies",
+                      "dialog",
+                      "downloads",
+                      "drag",
+                      "emulate",
+                      "evaluate",
+                      "extract",
+                      "find",
+                      "focus",
+                      "forward",
+                      "hover",
+                      "navigate",
+                      "network",
+                      "pdf",
+                      "press",
+                      "reload",
+                      "screenshot",
+                      "scroll",
+                      "select",
+                      "storage",
+                      "tabs",
+                      "type",
+                      "upload",
+                      "wait_for"
+                    ],
+                    "type": "string"
+                  },
+                  "ref": {
+                    "type": "string"
+                  },
+                  "steps": {
+                    "items": {
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Navigate, interact, evaluate or run browser steps",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/console": {
+      "get": {
+        "operationId": "browserConsole",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Read session console",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/downloads": {
+      "get": {
+        "operationId": "browserDownloads",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Read session downloads",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/network": {
+      "get": {
+        "operationId": "browserNetwork",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Read session network",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/read": {
+      "get": {
+        "operationId": "browserRead",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Read session read",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/screenshot": {
+      "get": {
+        "operationId": "browserScreenshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Browser screenshot"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Read session screenshot",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/sessions/{id}/snapshot": {
+      "get": {
+        "operationId": "browserSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^bs_[0-9a-f]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Invalid session id or secret"
+          },
+          "409": {
+            "description": "Session not ready"
+          },
+          "410": {
+            "description": "Session ended"
+          },
+          "503": {
+            "description": "Browser unavailable; retry with backoff"
+          }
+        },
+        "security": [
+          {
+            "browserSession": []
+          }
+        ],
+        "summary": "Read session snapshot",
+        "tags": [
+          "Browser"
+        ]
+      }
+    },
+    "/x402/session-10m": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/session-10m with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Session10m",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "identity": {
+                    "enum": [
+                      "honest",
+                      "normal"
+                    ],
+                    "type": "string"
+                  },
+                  "locale": {
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "start_url": {
+                    "format": "uri",
+                    "maxLength": 4096,
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "dpr": {
+                        "maximum": 3,
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "h": {
+                        "maximum": 2160,
+                        "minimum": 200,
+                        "type": "integer"
+                      },
+                      "w": {
+                        "maximum": 3840,
+                        "minimum": 320,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-10m",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.025",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/session-10m with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/session-10m-extend": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/session-10m-extend with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Session10mExtend",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "pattern": "^bs_[0-9a-f]{12}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_id",
+                  "secret"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-10m-extend",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.025",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/session-10m-extend with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/session-30m": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/session-30m with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Session30m",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "identity": {
+                    "enum": [
+                      "honest",
+                      "normal"
+                    ],
+                    "type": "string"
+                  },
+                  "locale": {
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "start_url": {
+                    "format": "uri",
+                    "maxLength": 4096,
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "dpr": {
+                        "maximum": 3,
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "h": {
+                        "maximum": 2160,
+                        "minimum": 200,
+                        "type": "integer"
+                      },
+                      "w": {
+                        "maximum": 3840,
+                        "minimum": 320,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-30m",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.05",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/session-30m with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/session-30m-extend": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/session-30m-extend with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Session30mExtend",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "pattern": "^bs_[0-9a-f]{12}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_id",
+                  "secret"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-30m-extend",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.05",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/session-30m-extend with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/session-60m": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/session-60m with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Session60m",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "identity": {
+                    "enum": [
+                      "honest",
+                      "normal"
+                    ],
+                    "type": "string"
+                  },
+                  "locale": {
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "start_url": {
+                    "format": "uri",
+                    "maxLength": 4096,
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "dpr": {
+                        "maximum": 3,
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "h": {
+                        "maximum": 2160,
+                        "minimum": 200,
+                        "type": "integer"
+                      },
+                      "w": {
+                        "maximum": 3840,
+                        "minimum": 320,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-60m",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.09",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/session-60m with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/session-60m-extend": {
+      "post": {
+        "description": "A prepaid honest browser session for an agent, paid in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/session-60m-extend with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Session60mExtend",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "pattern": "^bs_[0-9a-f]{12}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_id",
+                  "secret"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "session-60m-extend",
+        "tags": [
+          "Browser"
+        ],
+        "x-payment-info": {
+          "price": {
+            "amount": "0.09",
+            "currency": "USD",
+            "mode": "fixed"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/session-60m-extend with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Versioned payment and session API",
+      "url": "/v1"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Browser session purchases and authenticated operations",
+      "name": "Browser"
+    }
+  ],
+  "x-api-versioning": {
+    "current": "v1",
+    "policy": "The /v1 prefix identifies the current stable API. Unversioned paths remain compatibility aliases. Breaking changes will use a new major path and be announced with a deprecation period; no fixed sunset date is promised."
+  },
+  "x-service-info": {
+    "categories": [
+      "web-scraping",
+      "data",
+      "ai"
+    ],
+    "docs": {
+      "homepage": "https://agbrowser.shveik.dev"
+    }
+  }
+}
