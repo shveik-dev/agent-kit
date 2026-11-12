@@ -396,11 +396,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "14.612",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -635,12 +630,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "87.612",
-            "min": "14.612",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "mpp": {
@@ -874,11 +863,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "10.012",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -1113,12 +1097,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "60.012",
-            "min": "10.012",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "mpp": {
@@ -1352,11 +1330,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "14.612",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "x402": {}
@@ -1587,12 +1560,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "87.612",
-            "min": "14.612",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "x402": {}
@@ -1822,11 +1789,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "10.012",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "x402": {}
@@ -2057,12 +2019,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "60.012",
-            "min": "10.012",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "x402": {}

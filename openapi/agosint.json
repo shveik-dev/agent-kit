@@ -85,17 +85,17 @@
   },
   "info": {
     "contact": {
-      "email": "agdata@shveik.dev"
+      "email": "agosint@shveik.dev"
     },
-    "description": "Email inboxes for AI agents, by the hour: pay in stablecoins, get an address, wait for a message with one call and read the code or the link out of it. Endpoints: inbox-1h, inbox-1h-renew, inbox-4h, inbox-4h-renew, inbox-24h, inbox-24h-renew. An order returns an inbox id and a secret once the payment is accepted; the inbox takes mail when the payment has settled. GET /v1/inbox/{id}/wait and /otp (Authorization: Bearer secret) block until a message arrives. A renew call extends an inbox. Payment is in stablecoins: x402 on Base, Polygon and Solana or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A call that cannot be served is never charged. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agmail.shveik.dev/deprecation-policy.",
-    "title": "agmail",
+    "description": "Company and domain due diligence for AI agents: official registers, LEI, VAT, sanctions lists and domain records as signed JSON, each field with its source and retrieval time. Endpoints: due-diligence, company, company-de, domain, network, sanctions, vat. Every answer cites its official source, source URL and retrieval time, is signed (Ed25519, public keys at /.well-known/agosint-keys.json) and carries a note to verify at the source; it is not legal, compliance or credit advice. Payment is in stablecoins: x402 on Base and Polygon (plus Solana on most routes) or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A lookup that finds nothing, or that a source cannot answer, is never charged. A free preview shows what a call would return. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agosint.shveik.dev/deprecation-policy.",
+    "title": "agosint",
     "version": "1.1.0",
     "x-api-lifecycle": {
       "deprecation": "API routes and behavior may change or be discontinued. Consult the current documentation before use. There is no fixed advance-notice period; existing purchases and rights that cannot lawfully be excluded are unaffected.",
-      "policy": "https://agmail.shveik.dev/deprecation-policy",
+      "policy": "https://agosint.shveik.dev/deprecation-policy",
       "versioning": "URL prefix /v1"
     },
-    "x-guidance": "POST a small JSON body (see each operation's requestBody) with no payment to get a 402 carrying a PAYMENT-REQUIRED header (x402) and a WWW-Authenticate: Payment challenge (MPP). Sign either and retry the same request with a PAYMENT-SIGNATURE header (x402) or Authorization: Payment (MPP) to receive the JSON dataset. The 402 quotes the price for your requested limit: a fixed per-call fee plus a per-result price for each result; endpoints without a limit field return one result. If fewer results come back than you asked for, the per-result price of the missing ones is refunded on-chain to the paying address (refunds too small to be worth a transfer are not sent); a scrape with no results keeps only the fixed fee and refunds every result; a failed scrape is not settled. Response headers X-Agdata-Results-Requested, X-Agdata-Results-Delivered and X-Agdata-Refund (USDC base units) report it. Results are returned as one JSON array; limit is a maximum-result count (clamped to endpoint bounds). Paid results have no cursor or continuation token; the only paginated resource is the free GET /endpoints list (limit, cursor, next_cursor). Calls are synchronous; scrape timeout is bounded by configured upstream and settlement windows. An occasional 202 means settlement may have reached the chain, not an asynchronous job; retry the same payment to resolve/retrieve, and there is no status URL."
+    "x-guidance": "POST a small JSON body (see each operation's requestBody) with no payment to get a 402 carrying a PAYMENT-REQUIRED header (x402) and a WWW-Authenticate: Payment challenge (MPP). Sign either and retry the same request with a PAYMENT-SIGNATURE header (x402) or Authorization: Payment (MPP) to receive the JSON dataset. The 402 quotes the price for your requested limit: a fixed per-call fee plus a per-result price for each result; endpoints without a limit field return one result. If fewer results come back than you asked for, the per-result price of the missing ones is refunded on-chain to the paying address (refunds too small to be worth a transfer are not sent); a scrape with no results keeps only the fixed fee and refunds every result; a failed scrape is not settled. Response headers X-Agdata-Results-Requested, X-Agdata-Results-Delivered and X-Agdata-Refund (USDC base units) report it. On due-diligence, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On company, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On company-de, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On domain, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On network, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On sanctions, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). On vat, a call that delivers nothing is not settled and nothing is kept for it (502, error not_fetched). due-diligence, company, company-de, domain, network, sanctions and vat can take up to about 120 s: keep the connection open; retrying with the same payment returns the stored result. company-de is not offered on Solana. Results are returned as one JSON array; limit is a maximum-result count (clamped to endpoint bounds). Paid results have no cursor or continuation token; the only paginated resource is the free GET /endpoints list (limit, cursor, next_cursor). Calls are synchronous; scrape timeout is bounded by configured upstream and settlement windows. An occasional 202 means settlement may have reached the chain, not an asynchronous job; retry the same payment to resolve/retrieve, and there is no status URL."
   },
   "openapi": "3.1.0",
   "paths": {
@@ -179,10 +179,10 @@
         ]
       }
     },
-    "/mpp/inbox-1h": {
+    "/mpp/company": {
       "post": {
-        "description": "Get an email address for your agent for one hour: name@agmail.shveik.dev, a name of your choice or a random one. Pay in stablecoins with x402 or MPP, no account and no card. Wait for the verification mail with one call and get the code or the link back. Receive only. Extend it by paying again. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/inbox-1h with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "mppInbox1h",
+        "description": "Business registry lookup: company identity and legal entity enrichment as structured JSON, by registration number, name and country, VAT number, LEI or website. Registers of Czechia, Norway, the United Kingdom, France, Finland, US SEC filers and every LEI holder. Use when: you need the official identity of one company. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/company with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppCompany",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -194,11 +194,35 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "country": {
+                    "description": "two-letter ISO country code; required with id or name; CZ, NO, GB and US have their own official register, any other country is looked up in GLEIF",
+                    "pattern": "^[A-Za-z]{2}$",
+                    "type": "string"
+                  },
+                  "domain": {
+                    "description": "a company website as a bare domain: the legal entity is identified from the site's legal notice, certificate and public records and its register record returned; not charged when the site cannot be tied to one company",
+                    "maxLength": 253,
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "the register id: CZ ICO, NO organisation number, GB company number, US ticker or CIK, or a registration number for other countries",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "lei": {
+                    "description": "a 20-character legal entity identifier (any country; no country needed); when the entity's own register is one we read, that record is returned with the LEI and its parents",
+                    "pattern": "^[A-Za-z0-9]{18}[0-9]{2}$",
+                    "type": "string"
+                  },
                   "name": {
-                    "description": "the local part of the address; omit it for a random name",
-                    "maxLength": 32,
-                    "minLength": 3,
-                    "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]{1,30})[a-zA-Z0-9]$",
+                    "description": "a company name; several matches return a short candidate list with ids",
+                    "maxLength": 120,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "vat": {
+                    "description": "a VAT number of a country whose number contains the register id (CZ, FR, FI, NO); no country needed. Send exactly one of id, name, lei, vat or domain",
+                    "maxLength": 20,
                     "type": "string"
                   }
                 },
@@ -371,7 +395,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -384,16 +408,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Inbox for one hour",
+        "summary": "Business registry lookup",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.02",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -405,15 +424,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /mpp/inbox-1h with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/company with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/mpp/inbox-1h-renew": {
+    "/mpp/company-de": {
       "post": {
-        "description": "Extend an inbox by one hour. Send the inbox id and the inbox secret in the JSON body. Pay in stablecoins with x402 or MPP. The address and its mail stay. An inbox that is not extended stops at its expiry and its mail is deleted shortly after. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/inbox-1h-renew with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "mppInbox1hRenew",
+        "description": "German commercial register (Handelsregister) record: register court and number, legal form, status, seat, capital, representation rules, officers and history. Slower (about a minute). Use when: the company is German. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /mpp/company-de with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppCompanyDe",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -425,19 +444,74 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
-                  "inbox_id": {
-                    "description": "the inbox id returned by the order",
-                    "pattern": "^ib_[0-9a-f]{12}$",
+                  "city": {
+                    "description": "seat city",
+                    "maxLength": 80,
                     "type": "string"
                   },
-                  "secret": {
-                    "description": "the inbox secret returned by the order",
+                  "include_deleted": {
+                    "default": false,
+                    "description": "also return companies deleted from the register",
+                    "type": "boolean"
+                  },
+                  "legal_form": {
+                    "description": "legal form, e.g. GmbH or AG",
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 1,
+                    "description": "most company records to return and pay for (1 to 5, default 1)",
+                    "maximum": 5,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "match": {
+                    "default": "all",
+                    "description": "how the words of the name combine",
+                    "enum": [
+                      "all",
+                      "any",
+                      "exact"
+                    ],
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "company name words as in the register",
+                    "maxLength": 120,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "seat postal code",
+                    "maxLength": 10,
+                    "type": "string"
+                  },
+                  "register_court": {
+                    "description": "the register court, e.g. M\u00fcnchen",
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  "register_number": {
+                    "description": "exact register number",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "register_type": {
+                    "description": "restrict to one register",
+                    "enum": [
+                      "HRA",
+                      "HRB",
+                      "GnR",
+                      "PR",
+                      "VR",
+                      "GsR"
+                    ],
                     "type": "string"
                   }
                 },
                 "required": [
-                  "inbox_id",
-                  "secret"
+                  "name"
                 ],
                 "type": "object"
               }
@@ -608,7 +682,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -621,16 +695,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Extend by one hour",
+        "summary": "German commercial register record",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.02",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -642,15 +711,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /mpp/inbox-1h-renew with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/company-de with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/mpp/inbox-24h": {
+    "/mpp/domain": {
       "post": {
-        "description": "Get an email address for your agent for 24 hours: name@agmail.shveik.dev, a name of your choice or a random one. Pay in stablecoins with x402 or MPP, no account and no card. Wait for the verification mail with one call and get the code or the link back. Receive only. Extend it by paying again. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/inbox-24h with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "mppInbox24h",
+        "description": "Domain intelligence and phishing-risk signals: domain age and expiry (RDAP/WHOIS), registrar, DNS (A, AAAA, MX, NS, TXT, CAA), SPF, DMARC and MTA-STS, DNSSEC, TLS certificate issuer and expiry, hosting network, and the company behind the site when it can be identified. Use when: deciding whether a domain, link or email sender is legitimate, or checking a domain's mail setup. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/domain with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppDomain",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -662,250 +731,14 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
-                  "name": {
-                    "description": "the local part of the address; omit it for a random name",
-                    "maxLength": 32,
-                    "minLength": 3,
-                    "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]{1,30})[a-zA-Z0-9]$",
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                }
-              }
-            },
-            "description": "The dataset, after the payment settled.",
-            "headers": {
-              "PAYMENT-RESPONSE": {
-                "description": "Base64 x402 settlement response (x402 payments).",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Payment-Receipt": {
-                "description": "MPP receipt (MPP payments).",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Refund": {
-                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Results-Delivered": {
-                "description": "Number of results delivered.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Results-Requested": {
-                "description": "Number of results the quote was for.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
-          },
-          "402": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
-            "headers": {
-              "PAYMENT-REQUIRED": {
-                "description": "Base64-encoded x402 payment-required JSON.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "WWW-Authenticate": {
-                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Invalid-Request": {
-                "description": "1 when the request body is invalid and the quote is for 1 result only.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The same payment is already being worked on: wait and retry with the same payment."
-          },
-          "410": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
-          },
-          "413": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The request body is over 65536 bytes."
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Idempotency-Key was already used with a different request body."
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
-            "headers": {
-              "Retry-After": {
-                "description": "Seconds to wait.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Internal error: no payment was settled for it."
-          },
-          "502": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
-          }
-        },
-        "summary": "Inbox for a day",
-        "tags": [
-          "Scraping"
-        ],
-        "x-payment-info": {
-          "price": {
-            "amount": "0.10",
-            "currency": "USD",
-            "mode": "fixed"
-          },
-          "protocols": [
-            {
-              "mpp": {
-                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-                "intent": "charge",
-                "method": "evm"
-              }
-            }
-          ]
-        },
-        "x-quote-probe": {
-          "description": "GET /mpp/inbox-24h with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
-          "method": "GET"
-        }
-      }
-    },
-    "/mpp/inbox-24h-renew": {
-      "post": {
-        "description": "Extend an inbox by 24 hours. Send the inbox id and the inbox secret in the JSON body. Pay in stablecoins with x402 or MPP. The address and its mail stay. An inbox that is not extended stops at its expiry and its mail is deleted shortly after. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/inbox-24h-renew with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "mppInbox24hRenew",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "additionalProperties": false,
-                "properties": {
-                  "inbox_id": {
-                    "description": "the inbox id returned by the order",
-                    "pattern": "^ib_[0-9a-f]{12}$",
-                    "type": "string"
-                  },
-                  "secret": {
-                    "description": "the inbox secret returned by the order",
+                  "domain": {
+                    "description": "a public domain name such as example.com (an internationalised name is accepted); no URL, port or IP address",
+                    "maxLength": 253,
                     "type": "string"
                   }
                 },
                 "required": [
-                  "inbox_id",
-                  "secret"
+                  "domain"
                 ],
                 "type": "object"
               }
@@ -1076,7 +909,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -1089,16 +922,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Extend by 24 hours",
+        "summary": "Domain intelligence and phishing-risk signals",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.10",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -1110,15 +938,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /mpp/inbox-24h-renew with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/domain with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/mpp/inbox-4h": {
+    "/mpp/due-diligence": {
       "post": {
-        "description": "Get an email address for your agent for four hours: name@agmail.shveik.dev, a name of your choice or a random one. Pay in stablecoins with x402 or MPP, no account and no card. Wait for the verification mail with one call and get the code or the link back. Receive only. Extend it by paying again. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/inbox-4h with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "mppInbox4h",
+        "description": "Company due diligence in one call (KYB, vendor and supplier checks). Give a company name and country, a registry number, an EU VAT number, an LEI or a website domain. Returns the legal entity from the official register, LEI and parents, VAT validity, a sanctions screen (OFAC, EU, UK) of the company and officers, and the domain's age, mail and TLS, as signed pass/warn/fail checks with sources. Use when you must decide whether to trust an unknown company. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/due-diligence with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppDueDiligence",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -1130,11 +958,50 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "country": {
+                    "description": "two-letter ISO country code; required with name or id; not used with lei, vat or domain",
+                    "pattern": "^[A-Za-z]{2}$",
+                    "type": "string"
+                  },
+                  "domain": {
+                    "description": "the company's website as a bare domain such as example.com; the legal entity is identified from the site's own legal notice, its certificate and public records, and the call is not charged when it cannot be",
+                    "maxLength": 253,
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "a register number of the country (CZ ICO, NO organisation number, GB company number, FR SIREN or SIRET, FI business id, DE register number such as HRB 12345, US CIK or ticker); use with country",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "include": {
+                    "description": "the sections wanted; default all five",
+                    "items": {
+                      "enum": [
+                        "registry",
+                        "lei",
+                        "vat",
+                        "sanctions",
+                        "domain"
+                      ],
+                      "type": "string"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
+                  "lei": {
+                    "description": "a 20-character legal entity identifier",
+                    "pattern": "^[A-Za-z0-9]{18}[0-9]{2}$",
+                    "type": "string"
+                  },
                   "name": {
-                    "description": "the local part of the address; omit it for a random name",
-                    "maxLength": 32,
-                    "minLength": 3,
-                    "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]{1,30})[a-zA-Z0-9]$",
+                    "description": "a company name; use with country. Send exactly one of name, id, lei, vat or domain",
+                    "maxLength": 120,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "vat": {
+                    "description": "an EU or Norwegian VAT number with its country prefix, such as CZ45274649",
+                    "maxLength": 20,
                     "type": "string"
                   }
                 },
@@ -1307,7 +1174,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -1320,16 +1187,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Inbox for four hours",
+        "summary": "Company due diligence in one call",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.05",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -1341,15 +1203,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /mpp/inbox-4h with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/due-diligence with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/mpp/inbox-4h-renew": {
+    "/mpp/network": {
       "post": {
-        "description": "Extend an inbox by four hours. Send the inbox id and the inbox secret in the JSON body. Pay in stablecoins with x402 or MPP. The address and its mail stay. An inbox that is not extended stops at its expiry and its mail is deleted shortly after. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/inbox-4h-renew with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "mppInbox4hRenew",
+        "description": "IP address or AS number lookup: holder, announced prefixes, origin AS, country, RPKI status and abuse contact. Use when: you need to know who runs an IP address or network. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/network with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppNetwork",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -1361,20 +1223,17 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
-                  "inbox_id": {
-                    "description": "the inbox id returned by the order",
-                    "pattern": "^ib_[0-9a-f]{12}$",
+                  "asn": {
+                    "description": "an AS number such as AS3333 or 3333",
+                    "maxLength": 12,
                     "type": "string"
                   },
-                  "secret": {
-                    "description": "the inbox secret returned by the order",
+                  "ip": {
+                    "description": "a public IPv4 or IPv6 address",
+                    "maxLength": 45,
                     "type": "string"
                   }
                 },
-                "required": [
-                  "inbox_id",
-                  "secret"
-                ],
                 "type": "object"
               }
             }
@@ -1544,7 +1403,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -1557,16 +1416,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Extend by four hours",
+        "summary": "Holder of an AS number or IP address",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.05",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "mpp": {
@@ -1578,15 +1432,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /mpp/inbox-4h-renew with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/network with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/x402/inbox-1h": {
+    "/mpp/sanctions": {
       "post": {
-        "description": "Get an email address for your agent for one hour: name@agmail.shveik.dev, a name of your choice or a random one. Pay in stablecoins with x402 or MPP, no account and no card. Wait for the verification mail with one call and get the code or the link back. Receive only. Extend it by paying again. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/inbox-1h with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "x402Inbox1h",
+        "description": "Sanctions screening against the official OFAC SDN, EU consolidated and UK lists with fuzzy name matching, a score per hit, the programme and each list's publication date. Screen a company or person name (optionally with country or birth date) or a crypto wallet address. Use when: screening a counterparty, supplier, customer or wallet before a payment or onboarding. A screening aid, not a compliance determination. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/sanctions with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppSanctions",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -1598,11 +1452,55 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "birth_date": {
+                    "description": "a person's birth date, YYYY or YYYY-MM-DD; reported as corroboration of each hit",
+                    "pattern": "^\\d{4}(-\\d{2}-\\d{2})?$",
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "the subject's country (ISO code or English name); reported as corroboration of each hit, it does not change the score",
+                    "maxLength": 60,
+                    "type": "string"
+                  },
+                  "kind": {
+                    "default": "any",
+                    "description": "restrict matches to organisations (and vessels, aircraft) or to persons",
+                    "enum": [
+                      "entity",
+                      "person",
+                      "any"
+                    ],
+                    "type": "string"
+                  },
+                  "lists": {
+                    "description": "the lists to screen (default: all four)",
+                    "items": {
+                      "enum": [
+                        "ofac-sdn",
+                        "eu-fsf",
+                        "uk-sl",
+                        "un-sc"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
                   "name": {
-                    "description": "the local part of the address; omit it for a random name",
-                    "maxLength": 32,
-                    "minLength": 3,
-                    "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]{1,30})[a-zA-Z0-9]$",
+                    "description": "the company or person name to screen; send either name or wallet",
+                    "maxLength": 200,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "threshold": {
+                    "default": 0.85,
+                    "description": "the lowest match score reported; 1.00 is an exact name or alias, 0.98 the same words in another order, lower scores are fuzzy matches",
+                    "maximum": 1,
+                    "minimum": 0.7,
+                    "type": "number"
+                  },
+                  "wallet": {
+                    "description": "a crypto wallet address; an exact match against the digital-currency addresses listed on the OFAC SDN list (EVM addresses are case-insensitive)",
+                    "maxLength": 120,
                     "type": "string"
                   }
                 },
@@ -1775,7 +1673,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -1788,32 +1686,31 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Inbox for one hour",
+        "summary": "Sanctions screening",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.02",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
-              "x402": {}
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
             }
           ]
         },
         "x-quote-probe": {
-          "description": "GET /x402/inbox-1h with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/sanctions with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/x402/inbox-1h-renew": {
+    "/mpp/vat": {
       "post": {
-        "description": "Extend an inbox by one hour. Send the inbox id and the inbox secret in the JSON body. Pay in stablecoins with x402 or MPP. The address and its mail stay. An inbox that is not extended stops at its expiry and its mail is deleted shortly after. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/inbox-1h-renew with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "x402Inbox1hRenew",
+        "description": "EU VAT number validation against the official VIES service: valid or invalid, registered name and address, an optional check of the name you expect and, if you give your own VAT number, a VIES consultation number to keep as audit evidence. Norwegian numbers are checked against the Norwegian VAT register. Use when: onboarding an EU supplier or customer, or before paying an invoice. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/vat with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "mppVat",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -1825,19 +1722,24 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
-                  "inbox_id": {
-                    "description": "the inbox id returned by the order",
-                    "pattern": "^ib_[0-9a-f]{12}$",
+                  "expect_name": {
+                    "description": "the company name you expect; the answer says whether it matches the registered name (match, partial, mismatch or not_checked)",
+                    "maxLength": 200,
                     "type": "string"
                   },
-                  "secret": {
-                    "description": "the inbox secret returned by the order",
+                  "requester_vat": {
+                    "description": "your own EU VAT number: VIES then issues a consultation number, proof of the check to keep as audit evidence (not for Norwegian numbers)",
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "vat": {
+                    "description": "the VAT number to check, with its country prefix (an EU member state, or NO for Norway), e.g. CZ45274649",
+                    "maxLength": 20,
                     "type": "string"
                   }
                 },
                 "required": [
-                  "inbox_id",
-                  "secret"
+                  "vat"
                 ],
                 "type": "object"
               }
@@ -2008,7 +1910,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -2021,32 +1923,31 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Extend by one hour",
+        "summary": "EU VAT number validation",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.02",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
-              "x402": {}
+              "mpp": {
+                "currency": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "intent": "charge",
+                "method": "evm"
+              }
             }
           ]
         },
         "x-quote-probe": {
-          "description": "GET /x402/inbox-1h-renew with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /mpp/vat with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/x402/inbox-24h": {
+    "/x402/company": {
       "post": {
-        "description": "Get an email address for your agent for 24 hours: name@agmail.shveik.dev, a name of your choice or a random one. Pay in stablecoins with x402 or MPP, no account and no card. Wait for the verification mail with one call and get the code or the link back. Receive only. Extend it by paying again. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/inbox-24h with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "x402Inbox24h",
+        "description": "Business registry lookup: company identity and legal entity enrichment as structured JSON, by registration number, name and country, VAT number, LEI or website. Registers of Czechia, Norway, the United Kingdom, France, Finland, US SEC filers and every LEI holder. Use when: you need the official identity of one company. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/company with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Company",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -2058,11 +1959,35 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "country": {
+                    "description": "two-letter ISO country code; required with id or name; CZ, NO, GB and US have their own official register, any other country is looked up in GLEIF",
+                    "pattern": "^[A-Za-z]{2}$",
+                    "type": "string"
+                  },
+                  "domain": {
+                    "description": "a company website as a bare domain: the legal entity is identified from the site's legal notice, certificate and public records and its register record returned; not charged when the site cannot be tied to one company",
+                    "maxLength": 253,
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "the register id: CZ ICO, NO organisation number, GB company number, US ticker or CIK, or a registration number for other countries",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "lei": {
+                    "description": "a 20-character legal entity identifier (any country; no country needed); when the entity's own register is one we read, that record is returned with the LEI and its parents",
+                    "pattern": "^[A-Za-z0-9]{18}[0-9]{2}$",
+                    "type": "string"
+                  },
                   "name": {
-                    "description": "the local part of the address; omit it for a random name",
-                    "maxLength": 32,
-                    "minLength": 3,
-                    "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]{1,30})[a-zA-Z0-9]$",
+                    "description": "a company name; several matches return a short candidate list with ids",
+                    "maxLength": 120,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "vat": {
+                    "description": "a VAT number of a country whose number contains the register id (CZ, FR, FI, NO); no country needed. Send exactly one of id, name, lei, vat or domain",
+                    "maxLength": 20,
                     "type": "string"
                   }
                 },
@@ -2235,7 +2160,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -2248,16 +2173,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Inbox for a day",
+        "summary": "Business registry lookup",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.10",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "x402": {}
@@ -2265,15 +2185,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /x402/inbox-24h with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /x402/company with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/x402/inbox-24h-renew": {
+    "/x402/company-de": {
       "post": {
-        "description": "Extend an inbox by 24 hours. Send the inbox id and the inbox secret in the JSON body. Pay in stablecoins with x402 or MPP. The address and its mail stay. An inbox that is not extended stops at its expiry and its mail is deleted shortly after. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/inbox-24h-renew with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "x402Inbox24hRenew",
+        "description": "German commercial register (Handelsregister) record: register court and number, legal form, status, seat, capital, representation rules, officers and history. Slower (about a minute). Use when: the company is German. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /x402/company-de with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402CompanyDe",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -2285,19 +2205,74 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
-                  "inbox_id": {
-                    "description": "the inbox id returned by the order",
-                    "pattern": "^ib_[0-9a-f]{12}$",
+                  "city": {
+                    "description": "seat city",
+                    "maxLength": 80,
                     "type": "string"
                   },
-                  "secret": {
-                    "description": "the inbox secret returned by the order",
+                  "include_deleted": {
+                    "default": false,
+                    "description": "also return companies deleted from the register",
+                    "type": "boolean"
+                  },
+                  "legal_form": {
+                    "description": "legal form, e.g. GmbH or AG",
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 1,
+                    "description": "most company records to return and pay for (1 to 5, default 1)",
+                    "maximum": 5,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "match": {
+                    "default": "all",
+                    "description": "how the words of the name combine",
+                    "enum": [
+                      "all",
+                      "any",
+                      "exact"
+                    ],
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "company name words as in the register",
+                    "maxLength": 120,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "description": "seat postal code",
+                    "maxLength": 10,
+                    "type": "string"
+                  },
+                  "register_court": {
+                    "description": "the register court, e.g. M\u00fcnchen",
+                    "maxLength": 80,
+                    "type": "string"
+                  },
+                  "register_number": {
+                    "description": "exact register number",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "register_type": {
+                    "description": "restrict to one register",
+                    "enum": [
+                      "HRA",
+                      "HRB",
+                      "GnR",
+                      "PR",
+                      "VR",
+                      "GsR"
+                    ],
                     "type": "string"
                   }
                 },
                 "required": [
-                  "inbox_id",
-                  "secret"
+                  "name"
                 ],
                 "type": "object"
               }
@@ -2468,7 +2443,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -2481,16 +2456,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Extend by 24 hours",
+        "summary": "German commercial register record",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.10",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "x402": {}
@@ -2498,15 +2468,15 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /x402/inbox-24h-renew with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /x402/company-de with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
     },
-    "/x402/inbox-4h": {
+    "/x402/domain": {
       "post": {
-        "description": "Get an email address for your agent for four hours: name@agmail.shveik.dev, a name of your choice or a random one. Pay in stablecoins with x402 or MPP, no account and no card. Wait for the verification mail with one call and get the code or the link back. Receive only. Extend it by paying again. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/inbox-4h with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "x402Inbox4h",
+        "description": "Domain intelligence and phishing-risk signals: domain age and expiry (RDAP/WHOIS), registrar, DNS (A, AAAA, MX, NS, TXT, CAA), SPF, DMARC and MTA-STS, DNSSEC, TLS certificate issuer and expiry, hosting network, and the company behind the site when it can be identified. Use when: deciding whether a domain, link or email sender is legitimate, or checking a domain's mail setup. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/domain with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Domain",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -2518,246 +2488,14 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
-                  "name": {
-                    "description": "the local part of the address; omit it for a random name",
-                    "maxLength": 32,
-                    "minLength": 3,
-                    "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]{1,30})[a-zA-Z0-9]$",
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                }
-              }
-            },
-            "description": "The dataset, after the payment settled.",
-            "headers": {
-              "PAYMENT-RESPONSE": {
-                "description": "Base64 x402 settlement response (x402 payments).",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Payment-Receipt": {
-                "description": "MPP receipt (MPP payments).",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Refund": {
-                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Results-Delivered": {
-                "description": "Number of results delivered.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Results-Requested": {
-                "description": "Number of results the quote was for.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
-          },
-          "402": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
-            "headers": {
-              "PAYMENT-REQUIRED": {
-                "description": "Base64-encoded x402 payment-required JSON.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "WWW-Authenticate": {
-                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Agdata-Invalid-Request": {
-                "description": "1 when the request body is invalid and the quote is for 1 result only.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The same payment is already being worked on: wait and retry with the same payment."
-          },
-          "410": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
-          },
-          "413": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The request body is over 65536 bytes."
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Idempotency-Key was already used with a different request body."
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
-            "headers": {
-              "Retry-After": {
-                "description": "Seconds to wait.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Internal error: no payment was settled for it."
-          },
-          "502": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
-          }
-        },
-        "summary": "Inbox for four hours",
-        "tags": [
-          "Scraping"
-        ],
-        "x-payment-info": {
-          "price": {
-            "amount": "0.05",
-            "currency": "USD",
-            "mode": "fixed"
-          },
-          "protocols": [
-            {
-              "x402": {}
-            }
-          ]
-        },
-        "x-quote-probe": {
-          "description": "GET /x402/inbox-4h with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
-          "method": "GET"
-        }
-      }
-    },
-    "/x402/inbox-4h-renew": {
-      "post": {
-        "description": "Extend an inbox by four hours. Send the inbox id and the inbox secret in the JSON body. Pay in stablecoins with x402 or MPP. The address and its mail stay. An inbox that is not extended stops at its expiry and its mail is deleted shortly after. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/inbox-4h-renew with no body answers the 402 quote for one result without starting a scrape.",
-        "operationId": "x402Inbox4hRenew",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "additionalProperties": false,
-                "properties": {
-                  "inbox_id": {
-                    "description": "the inbox id returned by the order",
-                    "pattern": "^ib_[0-9a-f]{12}$",
-                    "type": "string"
-                  },
-                  "secret": {
-                    "description": "the inbox secret returned by the order",
+                  "domain": {
+                    "description": "a public domain name such as example.com (an internationalised name is accepted); no URL, port or IP address",
+                    "maxLength": 253,
                     "type": "string"
                   }
                 },
                 "required": [
-                  "inbox_id",
-                  "secret"
+                  "domain"
                 ],
                 "type": "object"
               }
@@ -2928,7 +2666,7 @@
                 }
               }
             },
-            "description": "The upstream scrape failed (error upstream_failed), or the payment could not be settled (settlement_failed). Nothing is delivered; an upstream failure is not charged."
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
           },
           "503": {
             "content": {
@@ -2941,16 +2679,11 @@
             "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
           }
         },
-        "summary": "Extend by four hours",
+        "summary": "Domain intelligence and phishing-risk signals",
         "tags": [
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "amount": "0.05",
-            "currency": "USD",
-            "mode": "fixed"
-          },
           "protocols": [
             {
               "x402": {}
@@ -2958,7 +2691,992 @@
           ]
         },
         "x-quote-probe": {
-          "description": "GET /x402/inbox-4h-renew with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "description": "GET /x402/domain with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/due-diligence": {
+      "post": {
+        "description": "Company due diligence in one call (KYB, vendor and supplier checks). Give a company name and country, a registry number, an EU VAT number, an LEI or a website domain. Returns the legal entity from the official register, LEI and parents, VAT validity, a sanctions screen (OFAC, EU, UK) of the company and officers, and the domain's age, mail and TLS, as signed pass/warn/fail checks with sources. Use when you must decide whether to trust an unknown company. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/due-diligence with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402DueDiligence",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "country": {
+                    "description": "two-letter ISO country code; required with name or id; not used with lei, vat or domain",
+                    "pattern": "^[A-Za-z]{2}$",
+                    "type": "string"
+                  },
+                  "domain": {
+                    "description": "the company's website as a bare domain such as example.com; the legal entity is identified from the site's own legal notice, its certificate and public records, and the call is not charged when it cannot be",
+                    "maxLength": 253,
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "a register number of the country (CZ ICO, NO organisation number, GB company number, FR SIREN or SIRET, FI business id, DE register number such as HRB 12345, US CIK or ticker); use with country",
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "include": {
+                    "description": "the sections wanted; default all five",
+                    "items": {
+                      "enum": [
+                        "registry",
+                        "lei",
+                        "vat",
+                        "sanctions",
+                        "domain"
+                      ],
+                      "type": "string"
+                    },
+                    "maxItems": 5,
+                    "type": "array"
+                  },
+                  "lei": {
+                    "description": "a 20-character legal entity identifier",
+                    "pattern": "^[A-Za-z0-9]{18}[0-9]{2}$",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "a company name; use with country. Send exactly one of name, id, lei, vat or domain",
+                    "maxLength": 120,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "vat": {
+                    "description": "an EU or Norwegian VAT number with its country prefix, such as CZ45274649",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Company due diligence in one call",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/due-diligence with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/network": {
+      "post": {
+        "description": "IP address or AS number lookup: holder, announced prefixes, origin AS, country, RPKI status and abuse contact. Use when: you need to know who runs an IP address or network. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/network with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Network",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "asn": {
+                    "description": "an AS number such as AS3333 or 3333",
+                    "maxLength": 12,
+                    "type": "string"
+                  },
+                  "ip": {
+                    "description": "a public IPv4 or IPv6 address",
+                    "maxLength": 45,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Holder of an AS number or IP address",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/network with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/sanctions": {
+      "post": {
+        "description": "Sanctions screening against the official OFAC SDN, EU consolidated and UK lists with fuzzy name matching, a score per hit, the programme and each list's publication date. Screen a company or person name (optionally with country or birth date) or a crypto wallet address. Use when: screening a counterparty, supplier, customer or wallet before a payment or onboarding. A screening aid, not a compliance determination. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/sanctions with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Sanctions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "birth_date": {
+                    "description": "a person's birth date, YYYY or YYYY-MM-DD; reported as corroboration of each hit",
+                    "pattern": "^\\d{4}(-\\d{2}-\\d{2})?$",
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "the subject's country (ISO code or English name); reported as corroboration of each hit, it does not change the score",
+                    "maxLength": 60,
+                    "type": "string"
+                  },
+                  "kind": {
+                    "default": "any",
+                    "description": "restrict matches to organisations (and vessels, aircraft) or to persons",
+                    "enum": [
+                      "entity",
+                      "person",
+                      "any"
+                    ],
+                    "type": "string"
+                  },
+                  "lists": {
+                    "description": "the lists to screen (default: all four)",
+                    "items": {
+                      "enum": [
+                        "ofac-sdn",
+                        "eu-fsf",
+                        "uk-sl",
+                        "un-sc"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "description": "the company or person name to screen; send either name or wallet",
+                    "maxLength": 200,
+                    "minLength": 2,
+                    "type": "string"
+                  },
+                  "threshold": {
+                    "default": 0.85,
+                    "description": "the lowest match score reported; 1.00 is an exact name or alias, 0.98 the same words in another order, lower scores are fuzzy matches",
+                    "maximum": 1,
+                    "minimum": 0.7,
+                    "type": "number"
+                  },
+                  "wallet": {
+                    "description": "a crypto wallet address; an exact match against the digital-currency addresses listed on the OFAC SDN list (EVM addresses are case-insensitive)",
+                    "maxLength": 120,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "Sanctions screening",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/sanctions with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
+          "method": "GET"
+        }
+      }
+    },
+    "/x402/vat": {
+      "post": {
+        "description": "EU VAT number validation against the official VIES service: valid or invalid, registered name and address, an optional check of the name you expect and, if you give your own VAT number, a VIES consultation number to keep as audit evidence. Norwegian numbers are checked against the Norwegian VAT register. Use when: onboarding an EU supplier or customer, or before paying an invoice. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/vat with no body answers the 402 quote for one result without starting a scrape.",
+        "operationId": "x402Vat",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "expect_name": {
+                    "description": "the company name you expect; the answer says whether it matches the registered name (match, partial, mismatch or not_checked)",
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "requester_vat": {
+                    "description": "your own EU VAT number: VIES then issues a consultation number, proof of the check to keep as audit evidence (not for Norwegian numbers)",
+                    "maxLength": 20,
+                    "type": "string"
+                  },
+                  "vat": {
+                    "description": "the VAT number to check, with its country prefix (an EU member state, or NO for Norway), e.g. CZ45274649",
+                    "maxLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "vat"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "The dataset, after the payment settled.",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "Base64 x402 settlement response (x402 payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP receipt (MPP payments).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Refund": {
+                "description": "USDC base units refunded to the paying address for results not delivered (only when a refund is due).",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Delivered": {
+                "description": "Number of results delivered.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Results-Requested": {
+                "description": "Number of results the quote was for.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request: a request body that is invalid (a payment was attached; without a payment an invalid body gets the 402 below), or a payment header that cannot be read (error invalid_payment). Nothing is charged."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The x402 PaymentRequired object (the same as the PAYMENT-REQUIRED header).",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Payment required: the quote, with both challenges (also the answer when a payment was not accepted: read error). An unpaid request with an invalid body also gets this 402, quoted for 1 result, with X-Agdata-Invalid-Request: 1 and the reason in error; do not sign that one.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "Base64-encoded x402 payment-required JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP Payment challenge (RFC 9110 auth-params): id, realm, method=evm, intent=charge, request.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Agdata-Invalid-Request": {
+                "description": "1 when the request body is invalid and the quote is for 1 result only.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The same payment is already being worked on: wait and retry with the same payment."
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The stored copy of this payment's result has expired (error expired): nothing is charged or run; sign a new payment to ask again."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The request body is over 65536 bytes."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Idempotency-Key was already used with a different request body."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Too many calls for this host or route are in flight (Retry-After: 5): no payment was taken.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal error: no payment was settled for it."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Nothing was delivered: a call that delivers nothing. Error not_fetched; the payment is not settled and nothing is charged. Also the answer when the upstream failed (upstream_failed) or the payment could not be settled (settlement_failed)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Temporarily unavailable (the endpoint, a payment network or the upstream is switched off or over its failure budget): no payment was taken. Try again later."
+          }
+        },
+        "summary": "EU VAT number validation",
+        "tags": [
+          "Scraping"
+        ],
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "x-quote-probe": {
+          "description": "GET /x402/vat with no body answers the 402 quote for one result without starting a scrape. A quote for a request-specific limit needs this POST body.",
           "method": "GET"
         }
       }
@@ -2967,11 +3685,11 @@
   "servers": [
     {
       "description": "Current stable API routes; legacy unversioned routes remain available.",
-      "url": "https://agmail.shveik.dev/v1"
+      "url": "https://agosint.shveik.dev/v1"
     },
     {
       "description": "Unversioned compatibility routes.",
-      "url": "https://agmail.shveik.dev"
+      "url": "https://agosint.shveik.dev"
     }
   ],
   "tags": [
@@ -2988,6 +3706,13 @@
     "current": "v1",
     "policy": "The /v1 prefix identifies the current stable API. Unversioned paths remain compatibility aliases. Breaking changes will use a new major path and be announced with a deprecation period; no fixed sunset date is promised."
   },
+  "x-discovery": {
+    "ownershipProofs": [
+      "0x0db25fd86e3f7021d962bf2f102f76accb8934cfb81b3f8cec34c0627f569462361a6146c34258a3115e91d805768d499a425ae65cfde03c603d83f88d9547d41b",
+      "0xffb5de7fe7e6b5e8bc04af427c6fce714edefe33fa04bd5f7a7da0a4422e276968a18232058b19a609d4246f619b7dbf42486871ea0529ed80ff489490825ea41b",
+      "5X8bKSvwMf9sTC8zJFuS8QfvChzYphCdoGnGDwgaGnNsyyTJy3oU6K2QFUNeoDvXGwkYv2fiobYgpKea9G9Hn72i"
+    ]
+  },
   "x-service-info": {
     "categories": [
       "web-scraping",
@@ -2995,7 +3720,7 @@
       "ai"
     ],
     "docs": {
-      "homepage": "https://agmail.shveik.dev"
+      "homepage": "https://agosint.shveik.dev"
     }
   }
 }

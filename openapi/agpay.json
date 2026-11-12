@@ -436,12 +436,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "505.092",
-            "min": "0.597",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "mpp": {
@@ -715,12 +709,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "505.092",
-            "min": "0.597",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "x402": {}

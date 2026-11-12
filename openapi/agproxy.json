@@ -87,7 +87,7 @@
     "contact": {
       "email": "agdata@shveik.dev"
     },
-    "description": "Residential proxy packs and a raw HTTP fetch for AI agents: buy gigabytes of traffic and get a proxy login, or fetch one URL from a residential IP. Endpoints: proxy, fetch. A proxy pack returns a host, a port, a username and a password after the payment settles; a fetch returns the raw response of one request as JSON. Payment is in stablecoins: x402 on Base and Polygon or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A call that cannot be served is never charged; a fetch is billed by the megabytes it delivers and the rest of the quote is refunded. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agproxy.shveik.dev/deprecation-policy.",
+    "description": "Residential proxy packs and a raw HTTP fetch for AI agents: buy gigabytes of traffic and get a proxy login, or fetch one URL from a residential IP. Endpoints: proxy, fetch. A proxy pack returns a host, a port, a username and a password after the payment settles; a fetch returns the raw response of one request as JSON. Payment is in stablecoins: x402 on Base and Polygon (plus Solana on some routes) or MPP on Base. x402 uses the exact scheme; no API keys, accounts or subscriptions. A call that cannot be served is never charged; a fetch is billed by the megabytes it delivers and the rest of the quote is refunded. Feedback is free: POST /feedback (or the MCP tool feedback) sends a note to the people who run the service. Every response carries RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers: they show the per-IP budget of the request class (free documents 120 per minute, unpaid quote requests 300 per minute; a request that carries a payment is never limited). Free GET documents (/openapi.json, /llms.txt, /agents.md, /pricing.md, /docs, /ask and /health) are limited to 120 requests per minute per client IP and return RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy; a 429 also includes Retry-After. API deprecation policy: https://agproxy.shveik.dev/deprecation-policy.",
     "title": "agproxy",
     "version": "1.1.0",
     "x-api-lifecycle": {
@@ -95,7 +95,7 @@
       "policy": "https://agproxy.shveik.dev/deprecation-policy",
       "versioning": "URL prefix /v1"
     },
-    "x-guidance": "POST a small JSON body (see each operation's requestBody) with no payment to get a 402 carrying a PAYMENT-REQUIRED header (x402) and a WWW-Authenticate: Payment challenge (MPP). Sign either and retry the same request with a PAYMENT-SIGNATURE header (x402) or Authorization: Payment (MPP) to receive the JSON dataset. The 402 quotes the price for your requested limit: a fixed per-call fee plus a per-result price for each result; endpoints without a limit field return one result. If fewer results come back than you asked for, the per-result price of the missing ones is refunded on-chain to the paying address (refunds too small to be worth a transfer are not sent); a scrape with no results keeps only the fixed fee and refunds every result; a failed scrape is not settled. Response headers X-Agdata-Results-Requested, X-Agdata-Results-Delivered and X-Agdata-Refund (USDC base units) report it. fetch can take up to about 25 s: keep the connection open; retrying with the same payment returns the stored result. proxy and fetch are not offered on Solana. Results are returned as one JSON array; limit is a maximum-result count (clamped to endpoint bounds). Paid results have no cursor or continuation token; the only paginated resource is the free GET /endpoints list (limit, cursor, next_cursor). Calls are synchronous; scrape timeout is bounded by configured upstream and settlement windows. An occasional 202 means settlement may have reached the chain, not an asynchronous job; retry the same payment to resolve/retrieve, and there is no status URL."
+    "x-guidance": "POST a small JSON body (see each operation's requestBody) with no payment to get a 402 carrying a PAYMENT-REQUIRED header (x402) and a WWW-Authenticate: Payment challenge (MPP). Sign either and retry the same request with a PAYMENT-SIGNATURE header (x402) or Authorization: Payment (MPP) to receive the JSON dataset. The 402 quotes the price for your requested limit: a fixed per-call fee plus a per-result price for each result; endpoints without a limit field return one result. If fewer results come back than you asked for, the per-result price of the missing ones is refunded on-chain to the paying address (refunds too small to be worth a transfer are not sent); a scrape with no results keeps only the fixed fee and refunds every result; a failed scrape is not settled. Response headers X-Agdata-Results-Requested, X-Agdata-Results-Delivered and X-Agdata-Refund (USDC base units) report it. fetch can take up to about 25 s: keep the connection open; retrying with the same payment returns the stored result. proxy is not offered on Solana. Results are returned as one JSON array; limit is a maximum-result count (clamped to endpoint bounds). Paid results have no cursor or continuation token; the only paginated resource is the free GET /endpoints list (limit, cursor, next_cursor). Calls are synchronous; scrape timeout is bounded by configured upstream and settlement windows. An occasional 202 means settlement may have reached the chain, not an asynchronous job; retry the same payment to resolve/retrieve, and there is no status URL."
   },
   "openapi": "3.1.0",
   "paths": {
@@ -181,7 +181,7 @@
     },
     "/mpp/fetch": {
       "post": {
-        "description": "Fetch one URL from a residential IP and get the raw response as JSON: status, final URL, headers and body (text or base64), up to 10 MB. GET, HEAD or POST, your own headers, an optional country. No JavaScript rendering. You pay for the megabytes delivered; a fetch that fails is not charged. Pay per call in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /mpp/fetch with no body answers the 402 quote for one result without starting a scrape.",
+        "description": "Fetch one URL from a residential IP and get the raw response as JSON: status, final URL, headers and body (text or base64), up to 10 MB. GET, HEAD or POST, your own headers, an optional country. No JavaScript rendering. You pay for the megabytes delivered; a fetch that fails is not charged. Pay per call in stablecoins. Send the JSON body with no payment to get a 402 with an MPP challenge (WWW-Authenticate) and an x402 challenge (PAYMENT-REQUIRED); sign the MPP one (evm/authorization) and retry with an Authorization header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /mpp/fetch with no body answers the 402 quote for one result without starting a scrape.",
         "operationId": "mppFetch",
         "parameters": [
           {
@@ -423,12 +423,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "0.0372",
-            "min": "0.0156",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "mpp": {
@@ -660,12 +654,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "240.012",
-            "min": "2.412",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "mpp": {
@@ -684,7 +672,7 @@
     },
     "/x402/fetch": {
       "post": {
-        "description": "Fetch one URL from a residential IP and get the raw response as JSON: status, final URL, headers and body (text or base64), up to 10 MB. GET, HEAD or POST, your own headers, an optional country. No JavaScript rendering. You pay for the megabytes delivered; a fetch that fails is not charged. Pay per call in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. Not offered on Solana: pay on Base or Polygon. GET /x402/fetch with no body answers the 402 quote for one result without starting a scrape.",
+        "description": "Fetch one URL from a residential IP and get the raw response as JSON: status, final URL, headers and body (text or base64), up to 10 MB. GET, HEAD or POST, your own headers, an optional country. No JavaScript rendering. You pay for the megabytes delivered; a fetch that fails is not charged. Pay per call in stablecoins. Send the JSON body with no payment to get a 402 with an x402 challenge (PAYMENT-REQUIRED) and an MPP challenge (WWW-Authenticate); sign the x402 one (exact scheme) and retry with a PAYMENT-SIGNATURE header. Both paths take either protocol: /x402/<name> and /mpp/<name> are the same endpoint. GET /x402/fetch with no body answers the 402 quote for one result without starting a scrape.",
         "operationId": "x402Fetch",
         "parameters": [
           {
@@ -926,12 +914,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "0.0372",
-            "min": "0.0156",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "x402": {}
@@ -1159,12 +1141,6 @@
           "Scraping"
         ],
         "x-payment-info": {
-          "price": {
-            "currency": "USD",
-            "max": "240.012",
-            "min": "2.412",
-            "mode": "dynamic"
-          },
           "protocols": [
             {
               "x402": {}

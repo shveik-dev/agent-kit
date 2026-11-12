@@ -1,31 +1,28 @@
-# ag-cli
+# Python discovery and quote CLI
 
-One small CLI for the shveik.dev agent products. Zero dependencies, Python 3.8+.
+Install the published per-product package: `pip install agdata`.
+Its entry point is `agdata`:
 
 ```sh
-pipx run ag-cli data endpoints        # or: pip install ag-cli, then: ag data endpoints
-ag data quote unblock '{"url":"https://example.com"}'   # the unpaid 402 quote
-ag vps docs
-ag mail pricing
-ag pay health
-ag products
+agdata endpoints
+agdata quote unblock '{"url":"https://example.com"}'
 ```
 
-Products: `data` (agdata.shveik.dev), `proxy` (agproxy), `vps` (agvps), `mail` (agmail), `pay` (agpay); the full names work too.
-Commands: `endpoints`, `docs`, `pricing`, `openapi`, `health`, `quote`, `call`.
+See https://pypi.org/project/agdata/ for published package documentation.
+The discovery/quote CLI DOES NOT SIGN or hold wallet keys. For bounded x402 signing
+see https://github.com/shveik-dev/agpay and https://github.com/shveik-dev/agpay#commands.
+The wallet CLI is distinct from the custodial agpay service.
 
-Paying: the CLI never holds keys and never signs. `quote` prints the 402 quote; sign it with your own wallet and send the call with
-`ag data call unblock '{"url":"..."}' --payment <signature>` (or `AG_PAYMENT`). Exit codes: 0 ok, 1 error, 2 usage, 3 payment required.
-`--origin <url>` or `AG_ORIGIN` overrides the service origin.
+Python packages are per-product (agdata, agproxy, agvps and agpay).
+For agosint and agbrowser use REST or MCP, not a product CLI package.
+This directory contains a historical shared source snapshot, not the published wheel layout.
 
-## The shveik.dev agent products
-
-Pay-per-call services for AI agents, paid in stablecoins with x402 or MPP, no accounts or API keys. Built by [shveik.dev](https://shveik.dev).
-
-- [agdata](https://agdata.shveik.dev): fresh web data (any URL as Markdown, search, maps, reviews, jobs, social)
+Operator: https://shveik.dev. Current services:
+- [agdata](https://agdata.shveik.dev): fresh web data: any URL as Markdown, search, maps, reviews, jobs, news and social
 - [agproxy](https://agproxy.shveik.dev): residential proxy packs and a raw fetch
 - [agvps](https://agvps.shveik.dev): Linux servers by the month
-- [agmail](https://agmail.shveik.dev): receive-only agent inboxes
-- [agpay](https://agpay.shveik.dev): custodial hold between two agents
+- [agpay](https://agpay.shveik.dev): a custodial hold between two agents: the buyer pays, the seller delivers, the money is released or refunded
+- [agosint](https://agosint.shveik.dev): company and domain due diligence with signed source evidence
+- [agbrowser](https://agbrowser.shveik.dev): browser sessions for agents: navigate, interact, read pages and take screenshots
 
-Docs for agents: `/agents.md` on each site. Homepage: https://shveik.dev
+Legacy source aliases and metadata are retained unchanged for compatibility, not as a current service catalog. The old mail service is retired; do not call it.

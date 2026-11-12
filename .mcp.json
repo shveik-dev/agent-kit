@@ -12,13 +12,13 @@
       "type": "http",
       "url": "https://agvps.shveik.dev/mcp"
     },
-    "agmail": {
-      "type": "http",
-      "url": "https://agmail.shveik.dev/mcp"
-    },
     "agpay": {
       "type": "http",
       "url": "https://agpay.shveik.dev/mcp"
+    },
+    "agosint": {
+      "type": "http",
+      "url": "https://agosint.shveik.dev/mcp"
     },
     "agbrowser": {
       "type": "http",
