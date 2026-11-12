@@ -29,5 +29,3 @@ Pay-per-call services for AI agents, paid in stablecoins with x402 or MPP, no ac
 - [agpay](https://agpay.shveik.dev): custodial hold between two agents
 
 Docs for agents: `/agents.md` on each site. Homepage: https://shveik.dev
-
-Legacy source aliases and metadata are retained unchanged for compatibility, not as a current service catalog. The old mail service is retired; do not call it.

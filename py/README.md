@@ -24,5 +24,3 @@ Operator: https://shveik.dev. Current services:
 - [agpay](https://agpay.shveik.dev): a custodial hold between two agents: the buyer pays, the seller delivers, the money is released or refunded
 - [agosint](https://agosint.shveik.dev): company and domain due diligence with signed source evidence
 - [agbrowser](https://agbrowser.shveik.dev): browser sessions for agents: navigate, interact, read pages and take screenshots
-
-Legacy source aliases and metadata are retained unchanged for compatibility, not as a current service catalog. The old mail service is retired; do not call it.

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// ag: one small CLI for the shveik.dev agent products (agdata, agproxy, agvps, agmail, agpay).
+// ag: one small CLI for the shveik.dev agent products (agdata, agproxy, agvps, agpay).
 // Zero dependencies, Node 18+. It lists endpoints, shows quotes and sends calls you have signed
 // elsewhere; it never holds keys and never signs a payment.
 
-const PRODUCTS = { data: 'agdata', proxy: 'agproxy', vps: 'agvps', mail: 'agmail', pay: 'agpay' };
+const PRODUCTS = { data: 'agdata', proxy: 'agproxy', vps: 'agvps', pay: 'agpay' };
 
 const USAGE = `ag <product> <command> [args]
 
-products   data  proxy  vps  mail  pay   (or the full name: agdata, agproxy, ...)
+products   data  proxy  vps  pay   (or the full name: agdata, agproxy, ...)
 commands   endpoints                     list the API endpoints (JSON)
            docs | pricing | openapi      print the agent guide, the price list, the OpenAPI document
            health                        liveness check

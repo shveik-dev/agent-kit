@@ -44,8 +44,6 @@ Use an owner-signed policy, a per-call maximum and a stable idempotency key. The
 is distinct from the custodial service at agpay.shveik.dev. Do not assume it signs MPP.
 
 The bundled discovery CLI covers agdata, agproxy, agvps and agpay only.
-Historical runtime sources and package metadata are retained unchanged; old mail aliases
-are compatibility artifacts for a retired service, not a supported product.
 For agosint and agbrowser use REST or MCP; no CLI package is advertised for either.
 Browser purchases return a one-time session secret; payment replay omits it.
 See [`skills/`](skills) for product-specific lifecycle and payment caveats.
